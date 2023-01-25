@@ -187,7 +187,7 @@ Kerberos authentication requires an [Enterprise license](../../introduction/lice
     demo = REFARCH-AD.CLOUD.LAB.REDHAT.COM
   ```
 
-1. For each node, create two principals: `host/<FQDN>@<REALM>.COM` and `redpanda/<FQDN>@<REALM>.COM`, ensuring that the expiration date is long enough and that the tickets are renewable.
+1. For each node, create the principal `redpanda/<FQDN>@<REALM>.COM`, ensuring that the expiration date is long enough and that the ticket is renewable.
 
 #### Enable Kerberos
 
