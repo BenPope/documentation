@@ -141,8 +141,6 @@ redpanda:
 
 ### Enable Kerberos
 
-Configure Kerberos authentication using a keytab, which contains the user credentials. This requires generating and verifying the keytab. 
-
 :::info
 Kerberos authentication requires an [Enterprise license](../../introduction/licenses). To upgrade, contact [Redpanda sales](https://redpanda.com/try-redpanda?section=enterprise-cloud).
 :::
@@ -151,13 +149,9 @@ Kerberos authentication requires an [Enterprise license](../../introduction/lice
 
 1. Ensure that host names and fully qualified domain names (FQDN) are configured properly.
 
-2. Install the `krb5-workstation` library on all Redpanda nodes:
-
+2. Install the `krb5-workstation` library on all Redpanda nodes. For example, on RHEL/CentOS:
+   
   ```bash
-  #On Debian:
-  $ sudo apt install krb5-workstation krb5-libs
-
-  # On RHEL/CentOS:
   $ sudo yum install krb5-workstation krb5-libs
   ```
 
@@ -187,50 +181,50 @@ Kerberos authentication requires an [Enterprise license](../../introduction/lice
     demo = REFARCH-AD.CLOUD.LAB.REDHAT.COM
   ```
 
-1. For each node, create the principal `redpanda/<FQDN>@<REALM>.COM`, ensuring that the expiration date is long enough and that the ticket is renewable.
+4. For each node, create the principal `redpanda/<FQDN>@<REALM>.COM`, ensuring that the expiration date is long enough and that the ticket is renewable.
 
 #### Enable Kerberos
 
-1. Generate keytabs for all (or any new) nodes:
+You configure Kerberos authentication using a keytab, which contains the user credentials. 
 
-  ```bash
-  # Generate all keytabs in cluster with a provided password
-  $ rpk security generate-keytabs
+1. Define the location of the Redpanda keytab file. This must be located at an identical file path on all Redpanda nodes. Default is `/var/lib/redpanda/redpanda.keytab`.
 
-  # Regenerate all keytabs in cluster
-  $ rpk security generate-keytabs --regenerate
+  ```bash   
+  $ rpk cluster config set sasl_kerberos_keytab <path>
   ```
 
-
-2. Verify that the Redpanda user can find, read, and renew the Kerberos ticket. To validate Kerberos keytabs:
-
+2. Define the service principal to be used by Redpanda with the given keytab. Default is `redpanda`.
+  
   ```bash
-  $ rpk security debug-keytabs
-    Inspecting keytab on redpanda-01: OK
-      * keytab found: yes
-          - /etc/redpanda/redpanda.keytab
-      * keytab readable: yes
-      * service principal found: yes
-          - redpanda/redpanda-01.example.com
-      * ticket renewable: yes
-    Inspecting keytab on redpanda-02: ERROR
-      * keytab found: yes
-          - /etc/redpanda/redpanda.keytab
-      * keytab readable: no
-    Inspecting keytab on redpanda-03: OK
-    ... 
+  $ rpk cluster config set sasl_kerberos_principal <name>
   ```
 
-3. Enable Kerberos (SASL/GSSAPI) for the Kafka API by adding GSSAPI to the Redpanda property `sasl.enabled.mechanisms`:
+3. Append the list of allowed SASL mechanisms that clients can use to authenticate against the Kafka API. For example, if Redpanda currently supports only SCRAM then the configuration may return the following:
+
+  ```bash
+  $ rpk cluster config get sasl_mechanisms
+  SCRAM
+  ```
+
+1. To add support for Kerberos, append the `sasl_mechanisms` property, either the value `GSSAPI`:
+
+  ```bash
+  $ rpk cluster config set sasl_mechanisms SCRAM,GSSAPI
+  ```
+
+  or with its synonym value `KERBEROS`:
+
+  ```bash
+  $ rpk cluster config set sasl_mechanisms SCRAM,KERBEROS
+  ```
+
+5. Enable SASL, if not already enabled:
 
   ```bash
   $ rpk cluster config set enable_sasl true
-  $ rpk cluster config set sasl_mechanisms GSSAPI,SCRAM
-
-  # or use the synonym “KERBEROS”
-  $ rpk cluster config set sasl_mechanisms KERBEROS,SCRAM
   ```
 
+6. If authentication is being configured for the first time, you may need to configure authorization [ACLs](../../security/authorization#acls) before users can access Redpanda resources.
 
 ### Configure Schema Registry and HTTP Proxy to connect to Redpanda with SASL
 
