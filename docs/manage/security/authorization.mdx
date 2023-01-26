@@ -238,19 +238,24 @@ rpk acl [command] [flags]
 ```
  
 For example, to create a user:
- 
+
 ```bash
-rpk acl user create \
---new-username Jack \
---new-password <password> \
---api-urls localhost:9644
-```
- 
-Result:
- 
+rpk acl user create Jack \
+--password <password> \
+--api-urls localhost:9644 \
+``` 
+
+<details>
+<summary>
+Example output
+</summary>
+
 ```bash
 Created user 'Jack'
 ```
+
+
+</details>
  
 Here are all the available commands and how they interact with Redpanda:
  
@@ -330,7 +335,7 @@ Every `rpk acl` command can use these flags:
 </tr>
 <tr>
 <td>--sasl-mechanism</td>
-<td>The authentication mechanism to use. Supported values: SCRAM-SHA-256, SCRAM-SHA-512.</td>
+<td>The authentication mechanism to use. Supported values: GSSAPI, SCRAM-SHA-256, SCRAM-SHA-512.</td>
 </tr>
 <tr>
 <td>--tls-cert</td>
@@ -563,7 +568,7 @@ Following are the available global user flags:
 
 ### User create
 
-This command creates a single SASL user with the given password, and optionally with a custom "mechanism". The mechanism determines which authentication flow the client uses for this user/password. Redpanda supports two mechanisms: `SCRAM-SHA-256`, the default, and `SCRAM-SHA-512`, which is the same flow but uses sha512.
+This command creates a single SASL user with the given password, and optionally with a custom "mechanism". The mechanism determines which authentication flow the client uses for this user/password. Redpanda supports the following mechanisms: `GSSAPI` (Kerberos), `SCRAM-SHA-256`, the default, and `SCRAM-SHA-512`, which is the same flow but uses sha512.
 
 Before a created SASL account can be used, you must also create ACLs to grant the account access to certain resources in your cluster.
 
@@ -574,22 +579,11 @@ rpk acl user create [USER] -p [PASSWORD] [globalACLFlags] [globalUserFlags] [loc
 ```
  
 Here are the local flags:
-<table>
-<tbody>
-<tr>
-<td>Flag</td>
-<td>Description</td>
-</tr>
-<tr>
-<td>-h, --help</td>
-<td>Help.</td>
-</tr>
-<tr>
-<td>--mechanism</td>
-<td>SASL mechanism to use (scram-sha-256, scram-sha-512, case insensitive) (default "scram-sha-256")</td>
-</tr>
-</tbody>
-</table>
+
+| Flag      | Description |
+| ----------- | ----------- |
+| -h, --help | Help. |
+| --mechanism | SASL mechanism to use: `scram-sha-256`, `scram-sha-512`, `GSSAPI`. Default is `scram-sha-256`. |
 
 ### User delete
  
