@@ -212,16 +212,10 @@ You configure Kerberos authentication using a keytab, which contains the user cr
   SCRAM
   ```
 
-1. To add support for Kerberos, append the `sasl_mechanisms` property, either with the value `GSSAPI`:
+4. To add support for Kerberos, append the `sasl_mechanisms` property with the value `GSSAPI`:
 
   ```bash
   $ rpk cluster config set sasl_mechanisms '["SCRAM","GSSAPI"]'
-  ```
-
-  or with its synonym value `KERBEROS`:
-
-  ```bash
-  $ rpk cluster config set sasl_mechanisms '["SCRAM","KERBEROS"]'
   ```
 
 5. Enable SASL, if not already enabled:
