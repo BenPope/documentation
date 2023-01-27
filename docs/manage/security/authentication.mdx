@@ -209,7 +209,7 @@ You configure Kerberos authentication using a keytab, which contains the user cr
 1. To add support for Kerberos, append the `sasl_mechanisms` property, either the value `GSSAPI`:
 
   ```bash
-  $ rpk cluster config set sasl_mechanisms SCRAM,GSSAPI
+  $ rpk cluster config set sasl_mechanisms '["SCRAM","GSSAPI"]'
   ```
 
   or with its synonym value `KERBEROS`:
