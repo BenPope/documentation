@@ -215,7 +215,7 @@ You configure Kerberos authentication using a keytab, which contains the user cr
   or with its synonym value `KERBEROS`:
 
   ```bash
-  $ rpk cluster config set sasl_mechanisms SCRAM,KERBEROS
+  $ rpk cluster config set sasl_mechanisms '["SCRAM","KERBEROS"]'
   ```
 
 5. Enable SASL, if not already enabled:
