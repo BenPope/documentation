@@ -193,7 +193,7 @@ You configure Kerberos authentication using a keytab, which contains the user cr
   $ rpk cluster config set sasl_kerberos_keytab <path>
   ```
 
-2. Define the service principal to be used by Redpanda with the given keytab. Default is `redpanda`.
+2. Define the primary of the service principal to be used by Redpanda with the given keytab. Default is `redpanda`.
   
   ```bash
   $ rpk cluster config set sasl_kerberos_principal <name>
