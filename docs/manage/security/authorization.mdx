@@ -335,7 +335,7 @@ Every `rpk acl` command can use these flags:
 </tr>
 <tr>
 <td>--sasl-mechanism</td>
-<td>The authentication mechanism to use. Supported values: GSSAPI, SCRAM-SHA-256, SCRAM-SHA-512.</td>
+<td>The authentication mechanism to use. Supported values: SCRAM-SHA-256, SCRAM-SHA-512.</td>
 </tr>
 <tr>
 <td>--tls-cert</td>
@@ -568,11 +568,11 @@ Following are the available global user flags:
 
 ### User create
 
-This command creates a single SASL user with the given password, and optionally with a custom "mechanism". The mechanism determines which authentication flow the client uses for this user/password. Redpanda supports the following mechanisms: `GSSAPI` (Kerberos), `SCRAM-SHA-256`, the default, and `SCRAM-SHA-512`, which is the same flow but uses sha512.
+This command creates a single SASL/SCRAM user with the given password, and optionally with a custom mechanism. The mechanism determines which authentication flow the client uses for this user/password. Redpanda `rpk` supports the following mechanisms: `SCRAM-SHA-256`, the default, and `SCRAM-SHA-512`, which is the same flow but uses sha512. To use GSSPI, see [Enable Kerberos](../../security/authentication/#enable-kerberos).
 
 Before a created SASL account can be used, you must also create ACLs to grant the account access to certain resources in your cluster.
 
-To create a SASL user, run:
+To create a SASL/SCRAM user, run:
  
 ```bash
 rpk acl user create [USER] -p [PASSWORD] [globalACLFlags] [globalUserFlags] [localFlags]
@@ -583,7 +583,7 @@ Here are the local flags:
 | Flag      | Description |
 | ----------- | ----------- |
 | -h, --help | Help. |
-| --mechanism | SASL mechanism to use: `scram-sha-256`, `scram-sha-512`, `GSSAPI`. Default is `scram-sha-256`. |
+| --mechanism | SASL mechanism to use: `scram-sha-256` or `scram-sha-512`. Default is `scram-sha-256`. |
 
 ### User delete
  

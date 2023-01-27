@@ -70,7 +70,9 @@ As a security best practice, don't use the superuser to interact with the cluste
 
 ## Enable SASL authentication
 
-Simple Authentication Security Layer (SASL) is a framework that lets the user choose the authentication mechanism. Redpanda supports multiple authentication mechanisms: GSSAPI (Kerberos) and SCRAM (Salted Challenge Response Authentication Mechanism). SCRAM provides strong encryption for user names and passwords by default and does not require an external data store for user information. Redpanda supports  `SCRAM-SHA-256` and `SCRAM-SHA-512`.
+Simple Authentication Security Layer (SASL) is a framework that lets the user choose the authentication mechanism. The mechanism determines which authentication flow the client uses for that user/password. 
+
+Redpanda supports multiple authentication mechanisms: GSSAPI (Kerberos) and SCRAM (Salted Challenge Response Authentication Mechanism). SCRAM provides strong encryption for user names and passwords by default and does not require an external data store for user information. Redpanda supports  `SCRAM-SHA-256` and `SCRAM-SHA-512`.
 
 :::note
 SASL authentication is only available for the Kafka API.
@@ -149,15 +151,7 @@ Kerberos authentication requires an [Enterprise license](../../introduction/lice
 
 1. Ensure that host names and fully qualified domain names (FQDN) are configured properly.
 
-2. Install the `krb5-workstation` library on all Redpanda nodes. For example, on RHEL/CentOS:
-   
-  ```bash
-  $ sudo yum install krb5-workstation krb5-libs
-  ```
-
-3. Configure the `/etc/krb5.conf` file to use Active Directory or another corporate key distribution center (KDC).`
-   
-   In the following example, `krb5.conf` shows realm information to point to the corporate KDC.
+2. Configure the `/etc/krb5.conf` [Kerberos configuration file](http://web.mit.edu/Kerberos/krb5-latest/doc/admin/conf_files/krb5_conf.html) to use Active Directory or another corporate key distribution center (KDC). In the following `krb5.conf` example, realm information points to the corporate KDC.
 
   ```bash
   [logging]
@@ -165,21 +159,33 @@ Kerberos authentication requires an [Enterprise license](../../introduction/lice
    kdc          = FILE:/var/log/krb5kdc.log
    admin_server = FILE:/var/log/kadmind.log
   [libdefaults]
-   default_realm    = REFARCH-AD.CLOUD.LAB.REDHAT.COM
+   default_realm    = EXAMPLE.REALM.COM
    dns_lookup_realm = false
    dns_lookup_kdc   = false
    ticket_lifetime  = 24h
    renew_lifetime   = 7d
    forwardable      = true
   [realms]
-   REFARCH-AD.CLOUD.LAB.REDHAT.COM = {
-    kdc          = WIN-SRV1.REFARCH-AD.CLOUD.LAB.REDHAT.COM
-    admin_server = WIN-SRV1.REFARCH-AD.CLOUD.LAB.REDHAT.COM
+   EXAMPLE.REALM.COM = {
+    kdc          = WIN-SRV1.EXAMPLE.REALM.COM
+    admin_server = WIN-SRV1.EXAMPLE.REALM.COM
    }
   [domain_realm]
-   .demo = REFARCH-AD.CLOUD.LAB.REDHAT.COM 
-    demo = REFARCH-AD.CLOUD.LAB.REDHAT.COM
+   .demo = EXAMPLE.REALM.COM 
+    demo = EXAMPLE.REALM.COM
   ```
+
+3. Set `sasl_kerberos_principal_mapping`. This maps external users onto Redpanda principals used in the ACLs.
+
+  ```bash
+  rpk cluster config get sasl_kerberos_principal_mapping
+  ```
+
+  ```bash
+  rpk cluster config set sasl_kerberos_principal_mapping '["RULE:[1:$1@$0](.*@MYDOMAIN.COM)s/@.*//","DEFAULT"]'
+  ```
+
+  For information about the rules, see the [Kafka documentation](https://kafka.apache.org/documentation/#security_authz_sasl).
 
 4. For each node, create the principal `redpanda/<FQDN>@<REALM>`, ensuring that the expiration date is long enough and that the ticket is renewable.
 
@@ -206,7 +212,7 @@ You configure Kerberos authentication using a keytab, which contains the user cr
   SCRAM
   ```
 
-1. To add support for Kerberos, append the `sasl_mechanisms` property, either the value `GSSAPI`:
+1. To add support for Kerberos, append the `sasl_mechanisms` property, either with the value `GSSAPI`:
 
   ```bash
   $ rpk cluster config set sasl_mechanisms '["SCRAM","GSSAPI"]'
@@ -221,14 +227,19 @@ You configure Kerberos authentication using a keytab, which contains the user cr
 5. Enable SASL, if not already enabled:
 
   ```bash
-  $ rpk cluster config set enable_sasl true
+  $ rpk cluster config set kafka_enable_authorization true
   ```
 
 6. If authentication is being configured for the first time, you may need to configure authorization [ACLs](../../security/authorization#acls) before users can access Redpanda resources.
 
+
 ### Configure Schema Registry and HTTP Proxy to connect to Redpanda with SASL
 
 Schema Registry and HTTP Proxy connect to Redpanda over the Kafka API. For the Kafka username and password, Redpanda uses ephemeral credentials internal to the cluster. Ephemeral credentials are regular SCRAM credentials, but they're only stored in memory and are lost when a node restarts. When the Schema Registry or HTTP Proxy start up, they broadcast an ephemeral credential to other nodes over the internal RPC. If authentication fails to a particular broker, new ephemeral credentials are sent to that broker, and the service reconnects.
+
+:::note
+Schema Registry and HTTP Proxy support SASL/SCRAM but do not support SASL/GSSAPI.
+:::
 
 #### Manual configuration
 
